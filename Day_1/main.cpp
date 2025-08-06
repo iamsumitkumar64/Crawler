@@ -23,7 +23,8 @@ int main(int argc, char *argv[])
     // cin >> dirname;
 
     WgetClass obj;
-    obj.wgetfunc(dirname, url);
+    char *file_path = obj.wgetfunc(dirname, url);
+    cout << file_path;
     cout << "\n";
     return 0;
 }

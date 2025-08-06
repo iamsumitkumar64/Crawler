@@ -9,7 +9,7 @@ private:
     void longIntoString(long long num, char *str);
 
 public:
-    void wgetfunc(const char *dirname, const char *url);
+    char *wgetfunc(const char *dirname, const char *url);
 };
-
+#include "source.cpp"
 #endif

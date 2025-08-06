@@ -1,10 +1,10 @@
 #include "header.h"
 #include <ctime>
 #include <fstream>
-#include "../../String_Lib/header.h"
+#include "../../../My Libraries/String_Lib/header.h"
 using namespace std;
 
-void WgetClass::wgetfunc(const char *dirname, const char *url)
+char *WgetClass::wgetfunc(const char *dirname, const char *url)
 {
     char mkdir_cmd[150] = "mkdir -p ";
     my_strcat(mkdir_cmd, dirname);
@@ -17,35 +17,39 @@ void WgetClass::wgetfunc(const char *dirname, const char *url)
     my_strcat(logs, url);
     my_strcat(logs, " Folder-> ");
     my_strcat(logs, dirname);
-    logfile << logs << endl;
 
-    char file_path[200] = "";
+    char *file_path = new char[200];
+    file_path[0] = '\0';
     my_strcat(file_path, dirname);
     my_strcat(file_path, "/");
-    cout << "hi one";
     my_strcat(file_path, unique_name());
-    cout << "hi two";
     my_strcat(file_path, ".html");
     char command[600] = "wget -O ";
     my_strcat(command, file_path);
     my_strcat(command, " ");
     my_strcat(command, url);
 
+    my_strcat(logs, " File_Name-> ");
+    my_strcat(logs, file_path);
+    logfile << logs << endl;
+
     int result = system(command);
     if (result == 0)
     {
+        return file_path;
         cout << "\tSuccess\n";
     }
     else
     {
         cout << "\tFailed\n";
     }
+    return nullptr;
 }
 
 char *WgetClass::unique_name()
 {
     char *uniqueName = new char[30];
-    time_t timenow = time(0);
+    time_t timenow = time(0); // 98653458743
     longIntoString(timenow, uniqueName);
     return uniqueName;
 }
