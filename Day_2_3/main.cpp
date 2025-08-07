@@ -13,7 +13,7 @@ int main()
     cin >> dirname;
     cout << "Enter depth :->";
     cin >> depth;
-    cout << "Enter Max-Count at Every depth :->";
+    cout << "Enter Max-Count :->";
     cin >> maxCount;
     CrawlClass obj(dirname);
     obj.dfs_crawl(url, depth, maxCount);

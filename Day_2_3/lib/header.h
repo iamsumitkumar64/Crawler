@@ -1,5 +1,5 @@
-#ifndef DFS
-#define DFS
+#ifndef DfsCrawl
+#define DfsCrawl
 #include "../../../My Libraries/String_Lib/header.h"
 #include "../../../My Libraries/Generic_C++_Hash_Map/generic_libs/header.h"
 
@@ -12,10 +12,9 @@ private:
 public:
     CrawlClass(char *dirname);
 
-    bool dfs_crawl(char *url, int &curr_depth, int maxCount);
-    void url_find(char *file_path, int curr_depth, int maxCount);
+    bool dfs_crawl(char *url, int curr_depth, int maxCount);
     char *code_find(char *file_path);
-    void extract_url(char *code, int curr_depth, int maxCount);
+    void extract_url(char *http_url, char *code, int curr_depth, int maxCount);
     bool isHtml(char *url);
 };
 

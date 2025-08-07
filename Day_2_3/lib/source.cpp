@@ -24,11 +24,16 @@ bool CrawlClass::isHtml(char *url)
     return true;
 }
 
-void CrawlClass::extract_url(char *code, int curr_depth, int maxCount)
+void CrawlClass::extract_url(char *http_url, char *code, int curr_depth, int maxCount)
 {
     int i = 0;
+    int levelCrawlCount = 0;
     while (code[i] != '\0')
     {
+        if (levelCrawlCount >= maxCount)
+        {
+            return;
+        }
         char temp[9];
         int n = 0;
         while (n < 8 && code[i + n] != '\0')
@@ -61,53 +66,74 @@ void CrawlClass::extract_url(char *code, int curr_depth, int maxCount)
                 url[j] = code[start + j];
             }
             url[len] = '\0';
-            int ulen = size_tmy_strlen(url);
-            if (isHtml(url))
+            if (url[0] == '#' || checksubstr(url, (char *)"#") ||
+                checksubstr(url, (char *)"mailto:") ||
+                checksubstr(url, (char *)"tel:") ||
+                checksubstr(url, (char *)"javascript:"))
             {
-                if (!hash_obj.HashExists(url, -1) && hash_obj.Hashcount() < maxCount)
+                delete[] url;
+                continue;
+            }
+            if (!checksubstr(url, (char *)"http"))
+            {
+                int base_len = size_tmy_strlen(http_url);
+                int url_len = size_tmy_strlen(url);
+                char *full_url = new char[base_len + url_len + 2];
+                my_strcpy(full_url, http_url);
+                if (http_url[base_len - 1] == '/' && url[0] == '/')
                 {
-                    bool success = dfs_crawl(url, curr_depth, maxCount);
-                    if (success)
-                    {
-                        hash_obj.Hashinsert(url, -1, 90);
-                    }
-                    else
-                    {
-                        cout << "Crawl failed, not into hash:-> " << url << "\n";
-                    }
-                    delete[] url;
+                    my_strcat(full_url, url + 1);
+                }
+                else if (http_url[base_len - 1] != '/' && url[0] != '/')
+                {
+                    full_url[base_len] = '/';
+                    full_url[base_len + 1] = '\0';
+                    my_strcat(full_url, url);
                 }
                 else
                 {
-                    cout << "Already visited or duplicate URL:-> " << url << "\n";
+                    my_strcat(full_url, url);
+                }
+                delete[] url;
+                url = full_url;
+            }
+            if (isHtml(url))
+            {
+                if (!hash_obj.HashExists(url, -1))
+                {
+                    if (curr_depth - 1 > 0)
+                    {
+                        bool success = dfs_crawl(url, curr_depth - 1, maxCount);
+                        if (success)
+                        {
+                            levelCrawlCount++;
+                        }
+                        else
+                        {
+                            cout << "Crawl failed, not inserted:-> " << url << "\n";
+                        }
+                    }
                 }
             }
-            else
-            {
-                cout << "Rejected URL:-> " << url << "\n";
-                delete[] url;
-            }
+            delete[] url;
         }
         else
         {
             i++;
         }
     }
-    cout << "\n\n\nAccepted URL:-> " << "\n";
-    hash_obj.HashdisplayAll();
-    if (hash_obj.Hashcount() >= maxCount)
-    {
-        return;
-    }
-    cout << "\n\n\n";
 }
 
 char *CrawlClass::code_find(char *file_path)
 {
     fstream in(file_path);
+    if (!in.is_open())
+    {
+        return nullptr;
+    }
     int length = 0, capacity = 1000;
     char c;
-    char *new_url = new char[capacity];
+    char *full_code = new char[capacity];
     while (in.get(c))
     {
         if (length >= capacity - 1)
@@ -116,30 +142,27 @@ char *CrawlClass::code_find(char *file_path)
             char *temp = new char[capacity];
             for (int i = 0; i < length; i++)
             {
-                temp[i] = new_url[i];
+                temp[i] = full_code[i];
             }
-            delete[] new_url;
-            new_url = temp;
+            delete[] full_code;
+            full_code = temp;
         }
-        new_url[length++] = c;
+        full_code[length++] = c;
     }
-    new_url[length] = '\0';
-    char *temp = trail_spaces(new_url);
-    delete[] new_url;
-    new_url = temp;
-    return new_url;
-}
-
-void CrawlClass::url_find(char *file_path, int curr_depth, int maxCount)
-{
-    char *full_code = code_find(file_path);
-    extract_url(full_code, curr_depth, maxCount);
+    full_code[length] = '\0';
+    char *temp = trail_spaces(full_code);
     delete[] full_code;
+    full_code = temp;
+    return full_code;
 }
 
-bool CrawlClass::dfs_crawl(char *url, int &curr_depth, int maxCount)
+bool CrawlClass::dfs_crawl(char *url, int curr_depth, int maxCount)
 {
-    if (curr_depth <= 0 || url == nullptr || this->folder_name == nullptr)
+    if (url == nullptr || folder_name == nullptr || curr_depth <= 0)
+    {
+        return false;
+    }
+    if (hash_obj.HashExists(url, -1))
     {
         return false;
     }
@@ -149,7 +172,19 @@ bool CrawlClass::dfs_crawl(char *url, int &curr_depth, int maxCount)
     {
         return false;
     }
-    int next_depth = curr_depth - 1;
-    url_find(path, next_depth, maxCount);
+    char *code = code_find(path);
+    if (code == nullptr)
+    {
+        delete[] path;
+        return false;
+    }
+    hash_obj.Hashinsert(url, -1, 90);
+    cout << "[INFO] Depth: " << curr_depth << endl;
+    if (curr_depth > 1)
+    {
+        extract_url(url, code, curr_depth, maxCount);
+    }
+    delete[] code;
+    delete[] path;
     return true;
 }

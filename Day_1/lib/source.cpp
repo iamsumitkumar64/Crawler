@@ -1,6 +1,8 @@
 #include "header.h"
 #include <ctime>
 #include <fstream>
+#include <cstdlib>
+#include <unistd.h>
 #include "../../../My Libraries/String_Lib/header.h"
 using namespace std;
 
@@ -10,82 +12,85 @@ char *WgetClass::wgetfunc(const char *dirname, const char *url)
     my_strcat(mkdir_cmd, dirname);
     system(mkdir_cmd);
 
-    system("touch logfile.txt");
-    ofstream logfile("logfile.txt", ios::app);
-    char logs[400] = " ";
-    my_strcpy(logs, " Url-> ");
-    my_strcat(logs, url);
-    my_strcat(logs, " Folder-> ");
-    my_strcat(logs, dirname);
-
     char *file_path = new char[200];
     file_path[0] = '\0';
-    my_strcat(file_path, dirname);
-    my_strcat(file_path, "/");
+
+    int len = size_tmy_strlen(dirname);
+    my_strcpy(file_path, dirname);
+    if (dirname[len - 1] != '/')
+    {
+        my_strcat(file_path, "/");
+    }
+
     my_strcat(file_path, unique_name());
     my_strcat(file_path, ".html");
+
     char command[600] = "wget -O ";
     my_strcat(command, file_path);
     my_strcat(command, " ");
     my_strcat(command, url);
 
-    my_strcat(logs, " File_Name-> ");
-    my_strcat(logs, file_path);
-    logfile << logs << endl;
-
     int result = system(command);
     if (result == 0)
     {
-        return file_path;
-        cout << "\tSuccess\n";
+        char *abs_path = realpath(file_path, nullptr);
+
+        if (abs_path != nullptr)
+        {
+            system("touch logfile.txt");
+            ofstream logfile("logfile.txt", ios::app);
+
+            char logs[500] = " ";
+            my_strcpy(logs, "Url-> ");
+            my_strcat(logs, url);
+            my_strcat(logs, " File_Name-> ");
+            my_strcat(logs, abs_path);
+            logfile << logs << endl;
+
+            cout << "\tSuccess\n";
+            delete[] file_path;
+            return abs_path;
+        }
     }
-    else
-    {
-        cout << "\tFailed\n";
-    }
+    cout << "\tFailed\n";
+    delete[] file_path;
     return nullptr;
 }
 
 char *WgetClass::unique_name()
 {
     char *uniqueName = new char[30];
-    time_t timenow = time(0); // 98653458743
+    time_t timenow = time(0);
     longIntoString(timenow, uniqueName);
     return uniqueName;
 }
 
 void WgetClass::longIntoString(long long num, char *str)
 {
-    str[0] = '/';
     if (num == 0)
     {
-        str[1] = '0';
-        str[2] = '\0';
+        str[0] = '0';
+        str[1] = '\0';
+        return;
     }
-    else
+    int i = 0;
+    if (num < 0)
     {
-        int i = 1, rem = 0;
-        if (num < 0)
-        {
-            num = -num;
-            str[i] = '-';
-            i++;
-        }
-        long long revNum = 0;
-        while (num > 0)
-        {
-            rem = num % 10;
-            revNum = revNum * 10 + rem;
-            num /= 10;
-        }
-        while (revNum > 0)
-        {
-            str[i] = (revNum % 10) + '0';
-            revNum /= 10;
-            i++;
-        }
-        str[i] = '\0';
+        str[i++] = '-';
+        num = -num;
     }
-    // char extension[] = {'.', 'h', 't', 'm', 'l', '\0'};
-    // my_strcat(str, extension);
+    long long revNum = 0;
+    int digit_count = 0;
+    while (num > 0)
+    {
+        revNum = revNum * 10 + (num % 10);
+        num /= 10;
+        digit_count++;
+    }
+    for (int j = 0; j < digit_count; j++)
+    {
+        str[i++] = (revNum % 10) + '0';
+        revNum /= 10;
+    }
+    str[i] = '\0';
 }
