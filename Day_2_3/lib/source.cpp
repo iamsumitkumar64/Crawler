@@ -9,6 +9,23 @@ CrawlClass::CrawlClass(char *dirname)
     this->folder_name = dirname;
 }
 
+char *normalize_url(char *url)
+{
+    int len = size_tmy_strlen(url);
+    while (len > 1 && url[len - 1] == '/')
+    {
+        url[--len] = '\0';
+    }
+    for (int i = 0; url[i] != '\0' && url[i] != '/'; i++)
+    {
+        if (url[i] >= 'A' && url[i] <= 'Z')
+        {
+            url[i] = url[i] + 32;
+        }
+    }
+    return url;
+}
+
 bool CrawlClass::isHtml(char *url)
 {
     if (checksubstr(url, (char *)".css") || checksubstr(url, (char *)".js") ||
@@ -99,19 +116,22 @@ void CrawlClass::extract_url(char *http_url, char *code, int curr_depth, int max
             }
             if (isHtml(url))
             {
-                if (!hash_obj.HashExists(url, -1))
+                url = normalize_url(url);
+                if (hash_obj.HashExists(url, -1))
                 {
-                    if (curr_depth - 1 > 0)
+                    delete[] url;
+                    continue;
+                }
+                if (curr_depth >= 1)
+                {
+                    bool success = dfs_crawl(url, curr_depth - 1, maxCount);
+                    if (success)
                     {
-                        bool success = dfs_crawl(url, curr_depth - 1, maxCount);
-                        if (success)
-                        {
-                            levelCrawlCount++;
-                        }
-                        else
-                        {
-                            cout << "Crawl failed, not inserted:-> " << url << "\n";
-                        }
+                        levelCrawlCount++;
+                    }
+                    else
+                    {
+                        cout << "Crawl failed, not inserted:-> " << url << "\n";
                     }
                 }
             }
@@ -158,14 +178,20 @@ char *CrawlClass::code_find(char *file_path)
 
 bool CrawlClass::dfs_crawl(char *url, int curr_depth, int maxCount)
 {
-    if (url == nullptr || folder_name == nullptr || curr_depth <= 0)
+    if (url == nullptr || folder_name == nullptr || curr_depth < 0)
     {
         return false;
     }
+    if (curr_depth == 0)
+    {
+        return true;
+    }
+    url = normalize_url(url);
     if (hash_obj.HashExists(url, -1))
     {
         return false;
     }
+    hash_obj.Hashinsert(url, -1, 90);
     WgetClass wget_obj;
     char *path = wget_obj.wgetfunc(this->folder_name, url);
     if (path == nullptr)
@@ -178,13 +204,54 @@ bool CrawlClass::dfs_crawl(char *url, int curr_depth, int maxCount)
         delete[] path;
         return false;
     }
-    hash_obj.Hashinsert(url, -1, 90);
     cout << "[INFO] Depth: " << curr_depth << endl;
-    if (curr_depth > 1)
+    keyword_obj.removeGrammer(path, url);
+    if (curr_depth > 0)
     {
         extract_url(url, code, curr_depth, maxCount);
     }
     delete[] code;
     delete[] path;
+    return true;
+}
+
+bool CrawlClass::processOldKeywords(const char *fileName, const char *full_code)
+{
+    FILE *fk = fopen(fileName, "r");
+    if (!fk)
+        return false;
+    fclose(fk);
+
+    char word[256];
+    cout << "\nEnter Keyword: ";
+    cin >> word;
+
+    if (!full_code || my_strcmp(full_code, "") == 0)
+    {
+        cout << "No keywords present\n";
+        return true;
+    }
+
+    int startIndex = my_strstr_index(full_code, word);
+    if (startIndex == -1)
+    {
+        cout << "Keyword not found\n";
+        return true;
+    }
+
+    char urls[2048];
+    int i = startIndex;
+    int j = 0;
+    while (full_code[i] != '\0' &&
+           full_code[i] != '\n' &&
+           !(full_code[i] == '-' && full_code[i + 1] == '>') &&
+           j < (int)sizeof(urls) - 1)
+    {
+        urls[j++] = full_code[i++];
+    }
+    urls[j] = '\0';
+
+    cout << "URLs for keyword \"" << word << "\":\n";
+    tokenizer(urls);
     return true;
 }

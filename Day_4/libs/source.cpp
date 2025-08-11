@@ -1,79 +1,7 @@
 #include "header.h"
 #include <iostream>
 
-void Keywords::extract_file_paths()
-{
-    fstream in("../Day_2_3/logfile.txt", ios::in);
-    int length = 0, capacity = 1000;
-    char c;
-    char *full_code = new char[capacity];
-    while (in.get(c))
-    {
-        if (length >= capacity - 1)
-        {
-            capacity *= 2;
-            char *temp = new char[capacity];
-            for (int i = 0; i < length; i++)
-            {
-                temp[i] = full_code[i];
-            }
-            delete[] full_code;
-            full_code = temp;
-        }
-        full_code[length++] = c;
-    }
-    full_code[length] = '\0';
-    int i = 0;
-    while (full_code[i] != '\0')
-    {
-        char temp[13];
-        int n = 0;
-        while (n < 12 && full_code[i + n] != '\0')
-        {
-            temp[n] = full_code[i + n];
-            n++;
-        }
-        temp[n] = '\0';
-        int index = my_strstr_index(temp, "File_Name->");
-        if (index != -1)
-        {
-            i += 12;
-            while (full_code[i] == ' ' || full_code[i] == '\n')
-            {
-                i++;
-            }
-            int start = i;
-            while (full_code[i] != '\0' && full_code[i] != '"' && full_code[i] != '\'' && full_code[i] != '>' && full_code[i] != ' ')
-            {
-                i++;
-            }
-            int len = i - start;
-            char *file_path = new char[len + 1];
-            for (int j = 0; j < len; j++)
-            {
-                file_path[j] = full_code[start + j];
-            }
-            file_path[len] = '\0';
-            cout << "File Name-" << file_path << endl;
-            // removeGrammer(file_path);
-        }
-        else
-        {
-            i++;
-        }
-    }
-    delete[] full_code;
-}
-
-void Keywords::removeGrammer(char *file_path)
-{
-    char *full_code = code_find(file_path);
-    if (full_code != nullptr)
-    {
-        cout << full_code << endl;
-        delete[] full_code;
-    }
-}
+using namespace std;
 
 char *Keywords::code_find(char *file_path)
 {
@@ -81,7 +9,6 @@ char *Keywords::code_find(char *file_path)
     if (!in)
     {
         cerr << "[ERROR] Cannot open file: " << file_path << endl;
-        delete[] file_path;
         return nullptr;
     }
     int length = 0, capacity = 1000;
@@ -105,6 +32,328 @@ char *Keywords::code_find(char *file_path)
     full_code[length] = '\0';
     char *trimmed = trail_spaces(full_code);
     delete[] full_code;
-    delete[] file_path;
+    // delete[] file_path;
     return trimmed;
+}
+void Keywords::extract_file_paths()
+{
+    fstream in("logfile.txt", ios::in);
+    if (!in)
+    {
+        cerr << "[ERROR] Cannot open logfile.txt\n";
+        return;
+    }
+    int length = 0, capacity = 1000;
+    char c;
+    char *full_code = new char[capacity];
+    while (in.get(c))
+    {
+        if (length >= capacity - 1)
+        {
+            capacity *= 2;
+            char *temp = new char[capacity];
+            for (int i = 0; i < length; i++)
+            {
+                temp[i] = full_code[i];
+            }
+            delete[] full_code;
+            full_code = temp;
+        }
+        full_code[length++] = c;
+    }
+    full_code[length] = '\0';
+    int i = 0;
+    char *last_url = nullptr;
+    while (full_code[i] != '\0')
+    {
+        if (my_strncmp(&full_code[i], "Url->", 5) == 0)
+        {
+            i += 5;
+            while (full_code[i] == ' ' || full_code[i] == '\n')
+            {
+                i++;
+            }
+            int start = i;
+            while (full_code[i] != '\0' && full_code[i] != '\n' && full_code[i] != ' ' && full_code[i] != 'F')
+            {
+                i++;
+            }
+            int len = i - start;
+            if (len > 0)
+            {
+                if (last_url)
+                {
+                    delete[] last_url;
+                }
+                last_url = new char[len + 1];
+                for (int k = 0; k < len; k++)
+                {
+                    last_url[k] = full_code[start + k];
+                }
+                last_url[len] = '\0';
+            }
+        }
+        else if (my_strncmp(&full_code[i], "File_Name->", 11) == 0)
+        {
+            i += 11;
+            while (full_code[i] == ' ' || full_code[i] == '\n')
+            {
+                i++;
+            }
+            int start = i;
+            while (full_code[i] != '\0' && full_code[i] != '\n' && full_code[i] != '"' && full_code[i] != '\'' && full_code[i] != '>' && full_code[i] != ' ')
+            {
+                i++;
+            }
+            int len = i - start;
+            if (len > 0)
+            {
+                char *file_path = new char[len + 1];
+                for (int k = 0; k < len; k++)
+                {
+                    file_path[k] = full_code[start + k];
+                }
+                file_path[len] = '\0';
+                removeGrammer(file_path, last_url);
+                delete[] file_path;
+            }
+        }
+        else
+        {
+            i++;
+        }
+    }
+    if (last_url)
+    {
+        delete[] last_url;
+    }
+    delete[] full_code;
+    return;
+}
+void Keywords::removeGrammer(char *file_path, char *url)
+{
+    char *full_code = code_find(file_path);
+    if (full_code != nullptr)
+    {
+        extract_text_from_body(full_code);
+        char *keyword = find_most_frequent_keyword(full_code);
+        char *url_copy = nullptr;
+        if (url)
+        {
+            int url_len = size_tmy_strlen(url);
+            url_copy = new char[url_len + 1];
+            my_strcpy(url_copy, url);
+        }
+        if (keyword && url_copy)
+        {
+            updateKeywordFile(keyword, url_copy);
+        }
+        else if (url_copy)
+        {
+            updateKeywordFile("[no keyword found]", url_copy);
+        }
+        delete[] full_code;
+        if (keyword)
+        {
+            delete[] keyword;
+        }
+        if (url_copy)
+        {
+            delete[] url_copy;
+        }
+    }
+}
+
+void Keywords::extract_text_from_body(char *html)
+{
+    char *body_start = nullptr, *body_end = nullptr;
+    for (int i = 0; html[i]; i++)
+    {
+        if (!body_start && html[i] == '<' && html[i + 1] == 'b' && html[i + 2] == 'o' && html[i + 3] == 'd' && html[i + 4] == 'y')
+        {
+            while (html[i] && html[i++] != '>')
+            {
+                if (!body_start && html[i])
+                {
+                    body_start = &html[i];
+                }
+            }
+        }
+        if (html[i] == '<' && html[i + 1] == '/' && html[i + 2] == 'b' && html[i + 3] == 'o' && html[i + 4] == 'd' && html[i + 5] == 'y')
+        {
+            body_end = &html[i];
+            break;
+        }
+    }
+    if (!body_start || !body_end)
+    {
+        return;
+    }
+    int j = 0;
+    bool in_tag = false;
+    for (char *p = body_start; p < body_end; p++)
+    {
+        if (*p == '<')
+        {
+            in_tag = true;
+        }
+        else if (*p == '>')
+        {
+            in_tag = false;
+        }
+        else if (!in_tag)
+        {
+            html[j++] = *p;
+        }
+    }
+    html[j] = '\0';
+}
+char *Keywords::find_most_frequent_keyword(char *text)
+{
+    const char *stopwords[] = {
+        "background", "width", "height", "svg", "items", "display", "padding", "margin", "other",
+        "header", "program", "https", "a", "an", "the", "this", "that", "these", "those", "such", "each", "every", "either",
+        "neither", "any", "some", "and", "or", "but", "nor", "so", "for", "yet", "in", "on", "at", "to", "of", "from", "by",
+        "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "under",
+        "over", "around", "near", "outside", "inside", "upon", "across", "towards", "onto", "off", "am", "is", "are", "was",
+        "were", "be", "been", "being", "have", "has", "had", "having", "do", "does", "did", "doing", "can", "could", "shall",
+        "should", "will", "would", "may", "might", "must", "i", "you", "he", "she", "it", "we", "they", "me", "him", "her",
+        "us", "them", "my", "your", "his", "its", "our", "their", "mine", "yours", "hers", "ours", "theirs", "not", "no",
+        "yes", "also", "just", "only", "very", "much", "many", "few", "more", "less", "same", "own", "too", "again", "px",
+        "rem", "em", "%", "vh", "vw", "pt", "w", "h", "top", "left", "right", "bottom", "section", "ul", "li", "div", "span",
+        "class", "id", "href", "src", "style", "html", "body", "head", "script", "type", "data", "meta", "content", "js",
+        "css", "j", "s", "text", "font", "color", "container", "row", "col", "main", "none", "true", "false", "img", "icon"};
+    int stop_count = sizeof(stopwords) / sizeof(stopwords[0]);
+    int max_count = 0;
+    char *most_freq_word = nullptr;
+    int i = 0, wlen = 0;
+    char word[30];
+
+    while (text[i] != '\0')
+    {
+        char c = text[i];
+        if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+        {
+            if (wlen < 29)
+            {
+                word[wlen++] = (c | 32);
+            }
+            i++;
+        }
+        else
+        {
+            if (wlen > 0)
+            {
+                word[wlen] = '\0';
+                wlen = 0;
+                if (size_tmy_strlen(word) < 3)
+                {
+                    i++;
+                    continue;
+                }
+                bool skip = false;
+                for (int s = 0; s < stop_count; s++)
+                {
+                    if (my_strcmp(word, stopwords[s]) == 0)
+                    {
+                        skip = true;
+                        break;
+                    }
+                }
+                if (skip)
+                {
+                    i++;
+                    continue;
+                }
+                int count = 0;
+                int idx = 0;
+                while (text[idx] != '\0')
+                {
+                    while (text[idx] != '\0' && !((text[idx] >= 'a' && text[idx] <= 'z') || (text[idx] >= 'A' && text[idx] <= 'Z')))
+                    {
+                        idx++;
+                    }
+                    int k = 0;
+                    char temp_word[30];
+                    while (((text[idx] >= 'a' && text[idx] <= 'z') || (text[idx] >= 'A' && text[idx] <= 'Z')) && k < 29)
+                    {
+                        temp_word[k++] = (text[idx++] | 32);
+                    }
+                    temp_word[k] = '\0';
+                    if (k > 0 && my_strcmp(temp_word, word) == 0)
+                    {
+                        count++;
+                    }
+                }
+                if (count > max_count)
+                {
+                    max_count = count;
+                    if (most_freq_word)
+                    {
+                        delete[] most_freq_word;
+                    }
+                    most_freq_word = new char[size_tmy_strlen(word) + 1];
+                    my_strcpy(most_freq_word, word);
+                }
+            }
+            i++;
+        }
+    }
+    return most_freq_word;
+}
+
+void Keywords::updateKeywordFile(char *keyword, char *url)
+{
+    if (!keyword || !url)
+    {
+        return;
+    }
+    FILE *fp = fopen("keyword.txt", "r");
+    const int MAX_LINE = 9000;
+    char **lines = new char *[1000];
+    int line_count = 0;
+    bool keyword_found = false;
+    if (fp)
+    {
+        char buffer[MAX_LINE];
+        while (fgets(buffer, sizeof(buffer), fp))
+        {
+            buffer[size_tmy_strlen(buffer) - (buffer[size_tmy_strlen(buffer) - 1] == '\n')] = '\0';
+            lines[line_count] = new char[MAX_LINE];
+            my_strcpy(lines[line_count], buffer);
+            line_count++;
+        }
+        fclose(fp);
+    }
+    for (int i = 0; i < line_count; i++)
+    {
+        char *arrow = my_strstr(lines[i], "->");
+        if (arrow)
+        {
+            int len = arrow - lines[i];
+            if (my_strncmp(lines[i], keyword, len) == 0 && size_tmy_strlen(keyword) == (size_t)len)
+            {
+                my_strcat(lines[i], ",");
+                my_strcat(lines[i], url);
+                keyword_found = true;
+                break;
+            }
+        }
+    }
+    if (!keyword_found)
+    {
+        lines[line_count] = new char[MAX_LINE];
+        my_strcpy(lines[line_count], keyword);
+        my_strcat(lines[line_count], "->");
+        my_strcat(lines[line_count], url);
+        line_count++;
+    }
+    fp = fopen("keyword.txt", "w");
+    for (int i = 0; i < line_count; i++)
+    {
+        fprintf(fp, "%s\n", lines[i]);
+        delete[] lines[i];
+    }
+    fclose(fp);
+    delete[] lines;
 }

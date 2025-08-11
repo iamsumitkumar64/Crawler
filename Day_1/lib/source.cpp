@@ -60,8 +60,10 @@ char *WgetClass::wgetfunc(const char *dirname, const char *url)
 char *WgetClass::unique_name()
 {
     char *uniqueName = new char[30];
-    time_t timenow = time(0);
-    longIntoString(timenow, uniqueName);
+    long long timestamp = time(0);
+    // add clock ticks and process ID to avoid duplicates in same second
+    timestamp = timestamp * 100000 + (clock() % 100000) + getpid();
+    longIntoString(timestamp, uniqueName);
     return uniqueName;
 }
 
