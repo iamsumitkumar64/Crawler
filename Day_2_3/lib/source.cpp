@@ -238,7 +238,7 @@ char *CrawlClass::processOldKeywords(const char *fileName, const char *full_code
         cout << "Keyword not found\n";
         return nullptr;
     }
-    char urls[2048];
+    char *urls = new char[2048];
     int i = startIndex;
     int j = 0;
     while (full_code[i] != '\0' &&

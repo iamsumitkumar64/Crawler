@@ -12,10 +12,13 @@ private:
 public:
     SEO(char *dirname);
     ~SEO();
+    void ReinitializeCrawlObj();
     void Do_Crawl(char *url,
                   int depth, int maxCount); // used for crawling
     char *Search_Keyword(char *keyword);    // used for getting keyword urls
-    void Delete_Old_Data();                 // used for removing old data
+    void delete_directory();
+    void delete_file();
+    void Delete_Old_Data(); // used for removing old data
 };
 
 #include "source.cpp"

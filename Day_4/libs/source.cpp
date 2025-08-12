@@ -52,7 +52,7 @@ void Keywords::removeGrammer(char *file_path, char *url)
         bool keyword_allocated = true;
         if (!keyword)
         {
-            keyword = "[no keyword found]";
+            my_strcpy(keyword, "[no keyword found]");
             keyword_allocated = false;
         }
         updateKeywordFile(keyword, url_copy);

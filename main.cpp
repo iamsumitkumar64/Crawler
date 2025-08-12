@@ -40,12 +40,23 @@ int main(int argc, char *argv[])
                 if (crawl_choice == 0)
                 {
                     cout << "\nRunning old crawl using keywords...\n";
-                    seo_obj.Search_Keyword((char *)"keyword.txt");
-                    break;
+                    char *result = seo_obj.Search_Keyword((char *)"keyword.txt");
+                    if (!result)
+                    {
+                        cout << "Returning to menu...\n";
+                    }
+                }
+                else
+                {
+                    cout << "\nRunning new crawl...\n";
+                    seo_obj.Do_Crawl(url, depth, maxCount);
                 }
             }
-            cout << "\nRunning new crawl...\n";
-            seo_obj.Do_Crawl(url, depth, maxCount);
+            else
+            {
+                cout << "\nRunning new crawl...\n";
+                seo_obj.Do_Crawl(url, depth, maxCount);
+            }
             break;
         }
         case 2:
