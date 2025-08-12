@@ -30,17 +30,17 @@ int main(int argc, char *argv[])
         {
         case 1:
         {
-            ifstream keyword_file("keyword.txt");
+            ifstream keyword_file("keywordIndex.txt");
             if (keyword_file.good())
             {
                 keyword_file.close();
                 int crawl_choice;
-                cout << "\nFound 'keyword.txt'.\nUse old crawl (0) or new crawl (any other integer)? ";
+                cout << "\nFound 'keywordIndex.txt'.\nUse old crawl (0) or new crawl (any other integer)? ";
                 cin >> crawl_choice;
                 if (crawl_choice == 0)
                 {
                     cout << "\nRunning old crawl using keywords...\n";
-                    char *result = seo_obj.Search_Keyword((char *)"keyword.txt");
+                    char *result = seo_obj.Search_Keyword((char *)"keywordIndex.txt");
                     if (!result)
                     {
                         cout << "Returning to menu...\n";
@@ -65,14 +65,14 @@ int main(int argc, char *argv[])
             break;
         case 3:
         {
-            ifstream keyword_file("keyword.txt");
+            ifstream keyword_file("keywordIndex.txt");
             if (!keyword_file.good())
             {
-                cout << "\n'keyword.txt' does not exist. Cannot search.\n";
+                cout << "\n'keywordIndex.txt' does not exist. Cannot search.\n";
                 break;
             }
             keyword_file.close();
-            seo_obj.Search_Keyword((char *)"keyword.txt");
+            seo_obj.Search_Keyword((char *)"keywordIndex.txt");
             break;
         }
         case 4:

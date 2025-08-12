@@ -355,7 +355,7 @@ void Keywords::updateKeywordFile(char *keyword, char *url)
     {
         return;
     }
-    FILE *fp = fopen("keyword.txt", "r");
+    FILE *fp = fopen("keywordIndex.txt", "r");
     const int MAX_LINE = 9000;
     char **lines = new char *[1000];
     int line_count = 0;
@@ -374,7 +374,7 @@ void Keywords::updateKeywordFile(char *keyword, char *url)
     }
     for (int i = 0; i < line_count; i++)
     {
-        char *arrow = my_strstr(lines[i], "->");
+        char *arrow = my_strstr(lines[i], " -> ");
         if (arrow)
         {
             int len = arrow - lines[i];
@@ -391,11 +391,11 @@ void Keywords::updateKeywordFile(char *keyword, char *url)
     {
         lines[line_count] = new char[MAX_LINE];
         my_strcpy(lines[line_count], keyword);
-        my_strcat(lines[line_count], "->");
+        my_strcat(lines[line_count], " -> ");
         my_strcat(lines[line_count], url);
         line_count++;
     }
-    fp = fopen("keyword.txt", "w");
+    fp = fopen("keywordIndex.txt", "w");
     for (int i = 0; i < line_count; i++)
     {
         size_t len = size_tmy_strlen(lines[i]);

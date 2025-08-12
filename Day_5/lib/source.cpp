@@ -30,7 +30,7 @@ void SEO::Do_Crawl(char *url,
 }
 char *SEO::Search_Keyword(char *keyword)
 {
-    char keyword_file_name[20] = "keyword.txt";
+    char keyword_file_name[20] = "keywordIndex.txt";
     char *full_code = Crawl_obj->code_find(keyword_file_name, true);
     if (!full_code)
     {
@@ -44,7 +44,7 @@ char *SEO::Search_Keyword(char *keyword)
         delete[] full_code;
         return nullptr;
     }
-    cout << all_urls << endl;
+    // cout << all_urls << endl;
     delete[] full_code;
     delete[] all_urls;
     return all_urls;
@@ -72,15 +72,15 @@ void SEO::delete_directory()
 
 void SEO::delete_file()
 {
-    int result1 = system("rm -f keyword.txt");
+    int result1 = system("rm -f keywordIndex.txt");
     int result2 = system("rm -f logfile.txt");
     if (result1 == 0)
     {
-        cout << "Deleted keyword.txt\n";
+        cout << "Deleted keywordIndex.txt\n";
     }
     else
     {
-        cout << "Failed to delete keyword.txt\n";
+        cout << "Failed to delete keywordIndex.txt\n";
     }
     if (result2 == 0)
     {

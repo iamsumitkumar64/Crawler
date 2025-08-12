@@ -243,11 +243,11 @@ char *CrawlClass::processOldKeywords(const char *fileName, const char *keyword_f
             i++;
             k++;
         }
-        if (word[k] == '\0' &&
-            keyword_file_full[i] == '-' && keyword_file_full[i + 1] == '>' &&
+        if (word[k] == '\0' && keyword_file_full[i] == ' ' && keyword_file_full[i + 1] == '-' &&
+            keyword_file_full[i + 2] == '>' && keyword_file_full[i + 3] == ' ' &&
             (start == 0 || keyword_file_full[start - 1] == '\n'))
         {
-            i += 2;
+            i += 4;
             int j = i;
             while (keyword_file_full[j] != '\0' &&
                    keyword_file_full[j] != '\n')
