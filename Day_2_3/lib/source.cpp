@@ -122,7 +122,7 @@ void CrawlClass::extract_url(char *http_url, char *code, int curr_depth, int max
                     delete[] url;
                     continue;
                 }
-                if (curr_depth >= 1)
+                if (curr_depth > 0)
                 {
                     bool success = dfs_crawl(url, curr_depth - 1, maxCount);
                     if (success)
@@ -182,16 +182,15 @@ bool CrawlClass::dfs_crawl(char *url, int curr_depth, int maxCount)
     {
         return false;
     }
-    if (curr_depth == 0)
+    if (curr_depth < 0)
     {
-        return true;
+        return false;
     }
     url = normalize_url(url);
     if (hash_obj.HashExists(url, -1))
     {
         return false;
     }
-    hash_obj.Hashinsert(url, -1, 90);
     WgetClass wget_obj;
     char *path = wget_obj.wgetfunc(this->folder_name, url);
     if (path == nullptr)
@@ -205,40 +204,40 @@ bool CrawlClass::dfs_crawl(char *url, int curr_depth, int maxCount)
         return false;
     }
     cout << "[INFO] Depth: " << curr_depth << endl;
+    hash_obj.Hashinsert(url, -1, 90);
     keyword_obj.removeGrammer(path, url);
-    if (curr_depth > 0)
+    if (curr_depth > 1) // depth check nicely
     {
         extract_url(url, code, curr_depth, maxCount);
     }
     delete[] code;
     delete[] path;
+    // free(path);
     return true;
 }
 
-bool CrawlClass::processOldKeywords(const char *fileName, const char *full_code)
+char *CrawlClass::processOldKeywords(const char *fileName, const char *full_code)
 {
     FILE *fk = fopen(fileName, "r");
     if (!fk)
-        return false;
+    {
+        return nullptr;
+    }
     fclose(fk);
-
     char word[256];
     cout << "\nEnter Keyword: ";
     cin >> word;
-
     if (!full_code || my_strcmp(full_code, "") == 0)
     {
         cout << "No keywords present\n";
-        return true;
+        return nullptr;
     }
-
     int startIndex = my_strstr_index(full_code, word);
     if (startIndex == -1)
     {
         cout << "Keyword not found\n";
-        return true;
+        return nullptr;
     }
-
     char urls[2048];
     int i = startIndex;
     int j = 0;
@@ -250,8 +249,7 @@ bool CrawlClass::processOldKeywords(const char *fileName, const char *full_code)
         urls[j++] = full_code[i++];
     }
     urls[j] = '\0';
-
-    cout << "URLs for keyword \"" << word << "\":\n";
+    // cout << "URLs for keyword \"" << word << "\":\n";
     tokenizer(urls);
-    return true;
+    return urls;
 }

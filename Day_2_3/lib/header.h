@@ -18,7 +18,7 @@ public:
     char *code_find(char *file_path);
     void extract_url(char *http_url, char *code, int curr_depth, int maxCount);
     bool isHtml(char *url);
-    bool processOldKeywords(const char *fileName, const char *full_code);
+    char *processOldKeywords(const char *fileName, const char *full_code);
 };
 
 #include "source.cpp"

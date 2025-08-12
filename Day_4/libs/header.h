@@ -7,7 +7,6 @@
 class Keywords
 {
 public:
-    void extract_file_paths();
     char *code_find(char *file_path);
     void removeGrammer(char *file_path, char *url);
     void extract_text_from_body(char *html);

@@ -31,104 +31,9 @@ char *Keywords::code_find(char *file_path)
     }
     full_code[length] = '\0';
     char *trimmed = trail_spaces(full_code);
-    delete[] full_code;
+    // delete[] full_code;
     // delete[] file_path;
     return trimmed;
-}
-void Keywords::extract_file_paths()
-{
-    fstream in("logfile.txt", ios::in);
-    if (!in)
-    {
-        cerr << "[ERROR] Cannot open logfile.txt\n";
-        return;
-    }
-    int length = 0, capacity = 1000;
-    char c;
-    char *full_code = new char[capacity];
-    while (in.get(c))
-    {
-        if (length >= capacity - 1)
-        {
-            capacity *= 2;
-            char *temp = new char[capacity];
-            for (int i = 0; i < length; i++)
-            {
-                temp[i] = full_code[i];
-            }
-            delete[] full_code;
-            full_code = temp;
-        }
-        full_code[length++] = c;
-    }
-    full_code[length] = '\0';
-    int i = 0;
-    char *last_url = nullptr;
-    while (full_code[i] != '\0')
-    {
-        if (my_strncmp(&full_code[i], "Url->", 5) == 0)
-        {
-            i += 5;
-            while (full_code[i] == ' ' || full_code[i] == '\n')
-            {
-                i++;
-            }
-            int start = i;
-            while (full_code[i] != '\0' && full_code[i] != '\n' && full_code[i] != ' ' && full_code[i] != 'F')
-            {
-                i++;
-            }
-            int len = i - start;
-            if (len > 0)
-            {
-                if (last_url)
-                {
-                    delete[] last_url;
-                }
-                last_url = new char[len + 1];
-                for (int k = 0; k < len; k++)
-                {
-                    last_url[k] = full_code[start + k];
-                }
-                last_url[len] = '\0';
-            }
-        }
-        else if (my_strncmp(&full_code[i], "File_Name->", 11) == 0)
-        {
-            i += 11;
-            while (full_code[i] == ' ' || full_code[i] == '\n')
-            {
-                i++;
-            }
-            int start = i;
-            while (full_code[i] != '\0' && full_code[i] != '\n' && full_code[i] != '"' && full_code[i] != '\'' && full_code[i] != '>' && full_code[i] != ' ')
-            {
-                i++;
-            }
-            int len = i - start;
-            if (len > 0)
-            {
-                char *file_path = new char[len + 1];
-                for (int k = 0; k < len; k++)
-                {
-                    file_path[k] = full_code[start + k];
-                }
-                file_path[len] = '\0';
-                removeGrammer(file_path, last_url);
-                delete[] file_path;
-            }
-        }
-        else
-        {
-            i++;
-        }
-    }
-    if (last_url)
-    {
-        delete[] last_url;
-    }
-    delete[] full_code;
-    return;
 }
 void Keywords::removeGrammer(char *file_path, char *url)
 {
@@ -144,16 +49,15 @@ void Keywords::removeGrammer(char *file_path, char *url)
             url_copy = new char[url_len + 1];
             my_strcpy(url_copy, url);
         }
-        if (keyword && url_copy)
+        bool keyword_allocated = true;
+        if (!keyword)
         {
-            updateKeywordFile(keyword, url_copy);
+            keyword = "[no keyword found]";
+            keyword_allocated = false;
         }
-        else if (url_copy)
-        {
-            updateKeywordFile("[no keyword found]", url_copy);
-        }
-        delete[] full_code;
-        if (keyword)
+        updateKeywordFile(keyword, url_copy);
+        // delete[] full_code;
+        if (keyword_allocated)
         {
             delete[] keyword;
         }
@@ -211,7 +115,7 @@ void Keywords::extract_text_from_body(char *html)
 char *Keywords::find_most_frequent_keyword(char *text)
 {
     const char *stopwords[] = {
-        "background", "width", "height", "svg", "items", "display", "padding", "margin", "other",
+        "page", "important", "background", "width", "height", "svg", "items", "display", "padding", "margin", "other",
         "header", "program", "https", "a", "an", "the", "this", "that", "these", "those", "such", "each", "every", "either",
         "neither", "any", "some", "and", "or", "but", "nor", "so", "for", "yet", "in", "on", "at", "to", "of", "from", "by",
         "with", "about", "against", "between", "into", "through", "during", "before", "after", "above", "below", "under",
