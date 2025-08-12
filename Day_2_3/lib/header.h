@@ -15,7 +15,7 @@ public:
     CrawlClass(char *dirname);
 
     bool dfs_crawl(char *url, int curr_depth, int maxCount);
-    char *code_find(char *file_path);
+    char *code_find(char *file_path, bool ans = false);
     void extract_url(char *http_url, char *code, int curr_depth, int maxCount);
     bool isHtml(char *url);
     char *processOldKeywords(const char *fileName, const char *full_code);

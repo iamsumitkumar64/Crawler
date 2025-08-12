@@ -255,7 +255,15 @@ void Keywords::updateKeywordFile(char *keyword, char *url)
     fp = fopen("keyword.txt", "w");
     for (int i = 0; i < line_count; i++)
     {
-        fprintf(fp, "%s\n", lines[i]);
+        size_t len = size_tmy_strlen(lines[i]);
+        if (len == 0 || lines[i][len - 1] != '\n')
+        {
+            fprintf(fp, "%s\n", lines[i]);
+        }
+        else
+        {
+            fprintf(fp, "%s", lines[i]);
+        }
         delete[] lines[i];
     }
     fclose(fp);

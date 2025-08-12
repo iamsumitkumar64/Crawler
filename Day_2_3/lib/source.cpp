@@ -144,7 +144,7 @@ void CrawlClass::extract_url(char *http_url, char *code, int curr_depth, int max
     }
 }
 
-char *CrawlClass::code_find(char *file_path)
+char *CrawlClass::code_find(char *file_path, bool ans)
 {
     fstream in(file_path);
     if (!in.is_open())
@@ -170,7 +170,7 @@ char *CrawlClass::code_find(char *file_path)
         full_code[length++] = c;
     }
     full_code[length] = '\0';
-    char *temp = trail_spaces(full_code);
+    char *temp = trail_spaces(full_code, ans);
     delete[] full_code;
     full_code = temp;
     return full_code;
@@ -216,40 +216,62 @@ bool CrawlClass::dfs_crawl(char *url, int curr_depth, int maxCount)
     return true;
 }
 
-char *CrawlClass::processOldKeywords(const char *fileName, const char *full_code)
+char *CrawlClass::processOldKeywords(const char *fileName, const char *keyword_file_full)
 {
     FILE *fk = fopen(fileName, "r");
     if (!fk)
     {
+        cerr << "[ERROR] File not found: " << fileName << endl;
         return nullptr;
     }
     fclose(fk);
     char word[256];
     cout << "\nEnter Keyword: ";
     cin >> word;
-    if (!full_code || my_strcmp(full_code, "") == 0)
+    if (!keyword_file_full || keyword_file_full[0] == '\0')
     {
-        cout << "No keywords present\n";
+        cout << "[ERROR] Empty file content\n";
         return nullptr;
     }
-    int startIndex = my_strstr_index(full_code, word);
-    if (startIndex == -1)
+    int i = 0;
+    while (keyword_file_full[i] != '\0')
     {
-        cout << "Keyword not found\n";
-        return nullptr;
+        int start = i;
+        int k = 0;
+        while (word[k] != '\0' && keyword_file_full[i] == word[k])
+        {
+            i++;
+            k++;
+        }
+        if (word[k] == '\0' &&
+            keyword_file_full[i] == '-' && keyword_file_full[i + 1] == '>' &&
+            (start == 0 || keyword_file_full[start - 1] == '\n'))
+        {
+            i += 2;
+            int j = i;
+            while (keyword_file_full[j] != '\0' &&
+                   keyword_file_full[j] != '\n')
+            {
+                j++;
+            }
+            int len = j - start;
+            char *line = new char[len + 1];
+            for (int m = 0; m < len; m++)
+            {
+                line[m] = keyword_file_full[start + m];
+            }
+            line[len] = '\0';
+            tokenizer(line);
+            return line;
+        }
+        while (keyword_file_full[i] != '\0' && keyword_file_full[i] != '\n')
+        {
+            i++;
+        }
+        if (keyword_file_full[i] == '\n')
+        {
+            i++;
+        }
     }
-    char *urls = new char[2048];
-    int i = startIndex;
-    int j = 0;
-    while (full_code[i] != '\0' &&
-           full_code[i] != '\n' &&
-           !(full_code[i] == '-' && full_code[i + 1] == '>') &&
-           j < (int)sizeof(urls) - 1)
-    {
-        urls[j++] = full_code[i++];
-    }
-    urls[j] = '\0';
-    // cout << "URLs for keyword \"" << word << "\":\n";
-    tokenizer(urls);
-    return urls;
+    return nullptr;
 }

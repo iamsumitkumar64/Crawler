@@ -72,7 +72,6 @@ int main(int argc, char *argv[])
                 break;
             }
             keyword_file.close();
-            cout << "\nSearching using existing keywords...\n";
             seo_obj.Search_Keyword((char *)"keyword.txt");
             break;
         }
@@ -81,8 +80,8 @@ int main(int argc, char *argv[])
             return 0;
         default:
             cout << "\nInvalid choice. Please enter 1, 2, 3, or 4.\n";
+            break;
         }
     }
-
     return 0;
 }

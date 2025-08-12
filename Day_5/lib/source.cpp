@@ -31,7 +31,7 @@ void SEO::Do_Crawl(char *url,
 char *SEO::Search_Keyword(char *keyword)
 {
     char keyword_file_name[20] = "keyword.txt";
-    char *full_code = Crawl_obj->code_find(keyword_file_name);
+    char *full_code = Crawl_obj->code_find(keyword_file_name, true);
     if (!full_code)
     {
         cout << "Could not load keyword file.\n";
